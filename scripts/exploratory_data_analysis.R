@@ -185,5 +185,3 @@ numeric_df <- df %>%
   na.omit()
 cor_matrix <- cor(numeric_df)
 corrplot(cor_matrix, method = "color")
-
-# ridhima

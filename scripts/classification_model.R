@@ -52,6 +52,3 @@ rf_model <- randomForest(CRM_CD_DESC ~ ., data = train)
 pred_rf <- predict(rf_model, test)
 
 mean(pred_rf == test$CRM_CD_DESC)
-
-
-# riddhima
