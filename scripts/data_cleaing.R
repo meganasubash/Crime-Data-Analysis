@@ -2,18 +2,23 @@
 # CRIME + WEATHER DATA CLEANING SCRIPT
 ############################################################
 
-install.packages('stringr')
+# install.packages('stringr')
 
 library(data.table)
 library(dplyr)
 library(lubridate)
 library(stringr)
 
+OUTPUT_DIR <- Sys.getenv("OUTPUT_DIR", unset = "/data/outputs")
+
+INPUT_CSV  <- file.path(OUTPUT_DIR, "crime_weather_update.csv")
+OUTPUT_CSV <- file.path(OUTPUT_DIR, "crime_weather_cleaned_final.csv")
 
 ############################################################
 # LOAD DATA
 ############################################################
-df <- fread("C:/Users/MS994/Downloads/pds/crime_weather_update.csv")
+# df <- fread("C:/Users/MS994/Downloads/pds/crime_weather_update.csv")
+df <- fread(INPUT_CSV)
 
 ############################################################
 # REMOVE DUPLICATES
@@ -127,5 +132,6 @@ colSums(is.na(df))
 ############################################################
 fwrite(
   df,
-  "C:/Users/MS994/Downloads/crime_weather_cleaned_final.csv"
+  # "C:/Users/MS994/Downloads/crime_weather_cleaned_final.csv"
+  OUTPUT_CSV
 )

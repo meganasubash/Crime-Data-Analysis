@@ -3,15 +3,22 @@ library(dplyr)
 library(lubridate)
 library(stringr)
 
-df <- fread("C:/Users/MS994/Downloads/pds/crime_weather_cleaned_final.csv")
+OUTPUT_DIR <- Sys.getenv("OUTPUT_DIR", unset = "/data/outputs")
+
+INPUT_CSV  <- file.path(OUTPUT_DIR, "crime_weather_cleaned_final.csv")
+OUTPUT_CSV <- file.path(OUTPUT_DIR, "crime_weather_cleaned2.csv")
+
+df <- fread(INPUT_CSV)
+
+# df <- fread("C:/Users/MS994/Downloads/pds/crime_weather_cleaned_final.csv")
 
 # Drop any date-occurrence columns
 df <- df %>%
   select(-`DATE OCC`)
 
 # Check remaining columns
-names(df)
-dim(df)
+# names(df)
+# dim(df)
 
 #rearranging
 
@@ -50,14 +57,14 @@ df <- df %>%
     # ---- SEASON ----
     season
   )
-names(df)
-head(df)
+# names(df)
+# head(df)
 
 #column names upper
 
 names(df) <- toupper(names(df))
-head(df$LOCATION, 20)
-library(stringr)
+# head(df$LOCATION, 20)
+# library(stringr)
 
 df$LOCATION <- str_squish(df$LOCATION)
 
@@ -72,7 +79,7 @@ temp <- str_remove(df$LOCATION, "^[0-9]+ ")
 temp <- str_remove(temp, paste0(" ", df$STREET_TYPE, "$"))
 
 df$STREET_NAME <- temp
-library(stringr)
+# library(stringr)
 
 df$LOCATION <- str_squish(df$LOCATION)
 
@@ -88,7 +95,7 @@ temp <- str_remove(temp, paste0(" ", df$STREET_TYPE, "$"))
 
 df$STREET_NAME <- temp
 
-head(df[,c("LOCATION","HOUSE_NO","STREET_NAME","STREET_TYPE")],20)
+# head(df[,c("LOCATION","HOUSE_NO","STREET_NAME","STREET_TYPE")],20)
 
 # ===== VICTIM COLUMNS CLEANING =====
 
@@ -132,22 +139,22 @@ df <- df %>%
     )
   )
 
-View(head(df,50))
+# View(head(df,50))
 df %>% 
   select(`VICT AGE`, VICT_AGE, `VICT SEX`, VICT_SEX, 
-         `VICT DESCENT`, VICT_DESCENT) %>% 
-  head(20)
+         `VICT DESCENT`, VICT_DESCENT) # %>% 
+  # head(20)
 
 # Remove duplicate/original victim columns - keep only cleaned versions
 df <- df %>%
   select(-`VICT AGE`, -`VICT SEX`, -`VICT DESCENT`)
 
 # Verify the columns are removed
-names(df)
+# names(df)
 
 # Check the cleaned victim columns
-head(df %>% select(VICT_AGE, VICT_SEX, VICT_DESCENT), 20)
-head(df)
+# head(df %>% select(VICT_AGE, VICT_SEX, VICT_DESCENT), 20)
+# head(df)
 
 
 
@@ -164,13 +171,13 @@ df <- df %>%
 
 
 # Verify the rearrangement
-names(df)
+# names(df)
 
 # Check for any missing AGE_GROUP values
-table(df$AGE_GROUP, useNA = "always")
+# table(df$AGE_GROUP, useNA = "always")
 
 # View first few rows to confirm structure
-head(df, 10)
+# head(df, 10)
 
 
 # Remove HOUR column
@@ -243,15 +250,16 @@ df <- df %>%
   )
 
 # Verify
-summary(df$MOCODE_COUNT)
-table(df$MOCODE_COUNT)
+# summary(df$MOCODE_COUNT)
+# table(df$MOCODE_COUNT)
 # Verify
-table(df$VICT_AGE == -1)
-sum(df$VICT_AGE == -1)
-View(head(df,50))
+# table(df$VICT_AGE == -1)
+# sum(df$VICT_AGE == -1)
+# View(head(df,50))
 
 # Export
-fwrite(df, "C:/Users/MS994/Downloads/pds/crime_weather_cleaned2.csv")
+# fwrite(df, "C:/Users/MS994/Downloads/pds/crime_weather_cleaned2.csv")
+fwrite(df, OUTPUT_CSV)
 
 
 
