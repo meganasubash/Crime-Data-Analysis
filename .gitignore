@@ -1,0 +1,13 @@
+# Ignore dataset folder
+data/
+
+# Ignore output files
+outputs/
+
+# Ignore all CSV files (extra safety)
+*.csv
+
+# R-specific files
+.Rhistory
+.RData
+.Rproj.user/

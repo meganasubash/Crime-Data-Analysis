@@ -4,7 +4,7 @@ library(lubridate)
 library(httr)
 library(jsonlite)
 
-crime_data <- fread("C:/Users/MS994/Downloads/Crime_Data_from_2020_to_Present.csv")
+crime_data <- fread("data/Crime_Data_from_2020_to_Present.csv")
 
 crime_data$DATE_OCC <- as.POSIXct(
   crime_data$`DATE OCC`,
