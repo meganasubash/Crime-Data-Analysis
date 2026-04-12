@@ -4,7 +4,15 @@ library(lubridate)
 library(httr)
 library(jsonlite)
 
-crime_data <- fread("data/Crime_Data_from_2020_to_Present.csv")
+DATA_DIR   <- Sys.getenv("DATA_DIR",   unset = "/data")
+OUTPUT_DIR <- Sys.getenv("OUTPUT_DIR", unset = "/data/outputs")
+
+INPUT_CSV  <- file.path(DATA_DIR, "Crime_Data_from_2020_to_Present.csv")
+OUTPUT_CSV <- file.path(OUTPUT_DIR, "crime_weather_update.csv")
+
+# crime_data <- fread("C:/Users/MS994/Downloads/Crime_Data_from_2020_to_Present.csv")
+
+crime_data <- fread(INPUT_CSV)
 
 crime_data$DATE_OCC <- as.POSIXct(
   crime_data$`DATE OCC`,
@@ -87,14 +95,15 @@ for(i in seq_along(all_dates)){
 
 
 weather_df <- bind_rows(weather_list)
-dim(weather_df)
+# dim(weather_df)
 
 
 crime_merged <- left_join(crime_data, weather_df, by="DATE_OCC")
 
 fwrite(
   crime_merged,
-  "C:/Users/MS994/Downloads/crime_weather_update.csv"
+  OUTPUT_CSV
+  # "C:/Users/MS994/Downloads/crime_weather_update.csv"
 )
-dim(weather_df)
-head(weather_df)
+# dim(weather_df)
+# head(weather_df)
