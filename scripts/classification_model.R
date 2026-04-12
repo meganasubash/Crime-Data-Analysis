@@ -56,7 +56,7 @@ acc_dt   <- mean(pred_dt == test$CRM.CD.DESC)
 cat(sprintf("Decision Tree Accuracy: %.4f\n", acc_dt))
 
 #  Random Forest 
-####cat("Training Random Forest (this may take a while)...\n")
+cat("Training Random Forest (this may take a while)...\n")
 # We will use 100 trees for the random forest model. The 'importance = TRUE' argument allows us to later analyze which features were most important in making predictions.
 # We set a seed for reproducibility, ensuring that the random processes in the model training can be replicated in future runs.
 # set.seed(123) is used to ensure that the random processes in the model training can be replicated in future runs, which is important for reproducibility of results.
