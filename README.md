@@ -1,28 +1,84 @@
-📌 Project Overview
+# Crime Data Analysis with Weather Correlation
 
-This project performs exploratory data analysis (EDA) on a real-world crime dataset to understand crime patterns across time, location, victim demographics, weapon usage, and premises types. The analysis is conducted using R to generate insights that can support data-driven crime prevention and policing strategies.
+## 📌 Project Overview
 
-🎯 Objectives
+This project analyzes crime data from 2020 to present and integrates historical weather data to explore patterns and relationships between environmental conditions and crime occurrences.
 
-⏰ Identify peak crime periods and temporal trends
-📍 Analyze crime distribution across different areas
-👥 Study relationships between victim demographics, weapons, and premises
-🔍 Detect high-risk locations and common crime patterns
+---
 
-📊 Dataset Description
+## 📊 Dataset
 
-The dataset contains reported crime incidents with attributes such as:
+* Crime dataset: Contains records of reported crimes including date, location, and victim details
+* Weather dataset: Retrieved using the Open-Meteo API (temperature and precipitation)
 
-🆔 DR Number (unique case identifier)
-📅 Date and time of occurrence
-🗺️ Area and location details
-📝 Crime type and description
-👤 Victim demographics
-🔫 Weapon and premises information
-📌 Case status and geographic coordinates
+---
 
+## ⚙️ Technologies Used
 
-🛠️ Tools and Technologies
+* R (data processing & analysis)
+* Libraries:
 
-🧮 R
-💻 RStudio
+  * data.table
+  * dplyr
+  * lubridate
+  * httr
+  * jsonlite
+  * ggplot2
+
+---
+
+## 🔄 Data Pipeline
+
+1. Load crime dataset
+2. Clean and format date fields
+3. Fetch historical weather data using API
+4. Merge crime and weather datasets
+5. Perform exploratory data analysis (EDA)
+6. Apply clustering (K-Means)
+7. Generate visualizations
+8. Predictive analysis
+9. Containerization
+10. Power BI DashBoard
+
+---
+
+## 🚀 How to Run the Project
+
+1. Clone the repository:
+
+   ```
+   git clone <your-repo-link>
+   ```
+
+2. Create a `data/` folder and add the dataset:
+
+   ```
+   data/Crime_Data.csv
+   ```
+
+3. Run the R script:
+
+   ```
+   source("scripts/your_script.R")
+   ```
+
+---
+
+## 📁 Project Structure
+
+```id="p4l8xo"
+Crime-Data-Analysis/
+│
+├── data/              # (ignored)
+├── outputs/           # plots & results
+├── scripts/           # R scripts
+├── .gitignore
+├── README.md
+```
+
+---
+
+## 👩‍💻 Author
+
+Megana Subash
+Riddhima Garg
