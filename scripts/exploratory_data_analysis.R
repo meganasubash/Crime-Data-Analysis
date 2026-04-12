@@ -178,3 +178,4 @@ ggplot(df, aes(month)) +
   geom_bar(fill="gold") +
   theme_minimal() +
   labs(title="Monthly Crime Trend")
+
