@@ -1,181 +1,169 @@
-
-
-
-install.packages(c("tidyverse","lubridate","GGally","janitor","scales"))
-
+# Exploratory Data Analysis Script
+# libraries
 library(tidyverse)
 library(lubridate)
-library(GGally)
-library(janitor)
+library(ggplot2)
 library(scales)
+library(corrplot)
 
-# 2. LOAD DATA
-df <- read.csv("C:/Users/MS994/Downloads/pds/crime_weather_cleaned2.csv")
+# Set directories
+OUTPUT_DIR <- Sys.getenv("OUTPUT_DIR", unset = "/data/outputs")
+# Create output directories if they don't exist
+PLOTS_DIR  <- file.path(OUTPUT_DIR, "plots")
+# ensure plots directory exists
+dir.create(PLOTS_DIR, showWarnings = FALSE, recursive = TRUE)
 
-# Clean column names
-df <- clean_names(df)
+# Load cleaned data
+INPUT_CSV <- file.path(OUTPUT_DIR, "crime_weather_cleaned2.csv")
+cat("Loading data from:", INPUT_CSV, "\n")
+# Read CSV with appropriate types
+df <- read.csv(INPUT_CSV, stringsAsFactors = FALSE)
 
-# 3. DATA TYPE CONVERSION
-df$date_rptd <- as.Date(df$date_rptd, format="%d-%m-%Y")
-df$date_occ  <- as.Date(df$date_occ, format="%d-%m-%Y")
+# Convert date and time columns
+df$DATE_OCC  <- as.Date(df$DATE_OCC)
+df$TIME.OCC  <- as.numeric(df$TIME.OCC)
 
-df$temp_max <- as.numeric(df$temp_max)
-df$temp_min <- as.numeric(df$temp_min)
-df$rain     <- as.numeric(df$rain)
-df$vict_age <- as.numeric(df$vict_age)
-df$time_occ <- as.numeric(df$time_occ)
+# Helper to save plots with consistent settings and print confirmation 
+save_plot <- function(p, filename, w = 10, h = 6) {
+  ggsave(file.path(PLOTS_DIR, filename), plot = p, width = w, height = h)
+  cat("  Saved:", filename, "\n")
+}
 
-# Convert categorical variables
-df <- df %>%
-  mutate(
-    area_name   = as.factor(area_name),
-    season      = as.factor(season),
-    temp_level  = as.factor(temp_level),
-    rain_flag   = as.factor(rain_flag),
-    time_period = as.factor(time_period),
-    weekday     = as.factor(weekday),
-    vict_sex    = as.factor(vict_sex),
-    vict_descent= as.factor(vict_descent)
-  )
+# 1. Crime by Hour
+p1 <- df %>%
+  mutate(hour = as.numeric(substr(sprintf("%04d", TIME.OCC), 1, 2))) %>%
+  count(hour) %>%
+  ggplot(aes(x = hour, y = n)) +
+  geom_line() + geom_point() +
+  labs(title = "Crime Distribution by Hour", x = "Hour of Day", y = "Number of Crimes") +
+  theme_minimal()
+save_plot(p1, "01_crime_by_hour.png")
 
-# Remove invalid ages
-df <- df %>% filter(vict_age > 0)
-
-# 4. BASIC EXPLORATION
-str(df)
-
-summary(df %>%
-          select(temp_max, temp_min, rain, vict_age, time_occ))
-
-table(df$season)
-table(df$rain_flag)
-table(df$time_period)
-table(df$area_name)
-
-# Missing values
-colSums(is.na(df))
-
-# 5. CORRELATION ANALYSIS
-num_df <- df %>%
-  select(temp_max, temp_min, rain, vict_age, time_occ)
-
-cor_matrix <- cor(num_df, use = "complete.obs")
-print(cor_matrix)
-
-# Correlation heatmap
-GGally::ggcorr(num_df, label = TRUE, label_round = 2)
-
-# 6. OUTLIER & DISTRIBUTION ANALYSIS
-
-# Histograms
-ggplot(df, aes(temp_max)) +
-  geom_histogram(bins=30, fill="steelblue") +
-  theme_minimal() +
-  labs(title="Temperature Distribution")
-
-ggplot(df, aes(vict_age)) +
-  geom_histogram(bins=30, fill="orange") +
-  theme_minimal() +
-  labs(title="Age Distribution")
-
-# Boxplots
-ggplot(df, aes(y=temp_max)) +
-  geom_boxplot(fill="red") +
-  theme_minimal() +
-  labs(title="Temperature Outliers")
-
-ggplot(df, aes(y=vict_age)) +
-  geom_boxplot(fill="green") +
-  theme_minimal() +
-  labs(title="Age Outliers")
-
-# 7. CRIME PATTERN ANALYSIS
-
-# Crime by Season
-df %>%
-  count(season) %>%
-  ggplot(aes(x = season, y = n, fill = season)) +
+#  2. Crime by Time Period 
+p2 <- df %>%
+  count(TIME_PERIOD) %>%
+  ggplot(aes(x = TIME_PERIOD, y = n, fill = TIME_PERIOD)) +
   geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime Count by Season")
+  labs(title = "Crime by Time Period") +
+  theme_minimal()
+save_plot(p2, "02_crime_by_time_period.png")
 
-# Crime by Temperature Level
-df %>%
-  count(temp_level) %>%
-  ggplot(aes(x = temp_level, y = n, fill = temp_level)) +
-  geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime vs Temperature Level")
-
-# Rain vs Crime
-df %>%
-  count(rain_flag) %>%
-  ggplot(aes(x = rain_flag, y = n, fill = rain_flag)) +
-  geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime: Rain vs No Rain")
-
-# Time Period
-df %>%
-  count(time_period) %>%
-  ggplot(aes(x = time_period, y = n, fill = time_period)) +
-  geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime by Time Period")
-
-# Weekday
-df %>%
-  count(weekday) %>%
-  ggplot(aes(x = reorder(weekday, n), y = n)) +
-  geom_bar(stat = "identity", fill="steelblue") +
+#  3. Crime by Weekday 
+p3 <- df %>%
+  count(WEEKDAY) %>%
+  ggplot(aes(x = reorder(WEEKDAY, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
   coord_flip() +
-  theme_minimal() +
-  labs(title="Crime by Weekday")
+  labs(title = "Crime by Weekday", x = "Day", y = "Count") +
+  theme_minimal()
+save_plot(p3, "03_crime_by_weekday.png")
 
-# Area-wise Crime
-df %>%
-  count(area_name) %>%
-  ggplot(aes(x = reorder(area_name, n), y = n)) +
-  geom_bar(stat = "identity", fill="brown") +
+#  4. Top 10 Crime Areas 
+p4 <- df %>%
+  count(AREA.NAME, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(AREA.NAME, n), y = n)) +
+  geom_bar(stat = "identity", fill = "darkred") +
   coord_flip() +
-  theme_minimal() +
-  labs(title="Crime by Area")
+  labs(title = "Top 10 Crime Areas", x = "Area", y = "Crime Count") +
+  theme_minimal()
+save_plot(p4, "04_top10_areas.png")
 
-# 8. DEMOGRAPHIC ANALYSIS
+#  5. Crime Location Scatter 
+p5 <- ggplot(df, aes(x = LON, y = LAT)) +
+  geom_point(alpha = 0.2, color = "red") +
+  labs(title = "Crime Location Scatter Plot") +
+  theme_minimal()
+save_plot(p5, "05_crime_scatter_map.png")
 
-# Age Groups
-df %>%
-  count(age_group) %>%
-  ggplot(aes(x = age_group, y = n, fill = age_group)) +
+#  6. Victim Age Distribution 
+plot_df <- df %>% filter(VICT_AGE > 0)   # exclude -1 sentinel
+p6 <- ggplot(plot_df, aes(x = VICT_AGE)) +
+  geom_histogram(bins = 30, fill = "skyblue") +
+  labs(title = "Victim Age Distribution") +
+  theme_minimal()
+save_plot(p6, "06_victim_age_dist.png")
+
+#  7. Crime by Age Group 
+p7 <- df %>%
+  count(AGE_GROUP) %>%
+  ggplot(aes(x = AGE_GROUP, y = n, fill = AGE_GROUP)) +
   geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime by Age Group")
+  labs(title = "Crime by Age Group") +
+  theme_minimal()
+save_plot(p7, "07_crime_by_age_group.png")
 
-# Gender
-df %>%
-  count(vict_sex) %>%
-  ggplot(aes(x = vict_sex, y = n, fill = vict_sex)) +
+#  8. Crime by Gender 
+p8 <- df %>%
+  count(VICT_SEX) %>%
+  ggplot(aes(x = VICT_SEX, y = n, fill = VICT_SEX)) +
   geom_bar(stat = "identity") +
-  theme_minimal() +
-  labs(title="Crime by Gender")
+  labs(title = "Crime by Gender") +
+  theme_minimal()
+save_plot(p8, "08_crime_by_gender.png")
 
-# 9. SCATTER & RELATIONSHIPS
+#  9. Top Weapons 
+p9 <- df %>%
+  count(WEAPON.DESC, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(WEAPON.DESC, n), y = n)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  coord_flip() +
+  labs(title = "Top 10 Weapons Used") +
+  theme_minimal()
+save_plot(p9, "09_top_weapons.png")
 
-# Temperature vs Rain
-ggplot(df, aes(temp_max, rain)) +
-  geom_point(alpha=0.4) +
-  theme_minimal() +
-  labs(title="Temperature vs Rain")
+#  10. Top Premises 
+p10 <- df %>%
+  count(PREMIS.DESC, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(PREMIS.DESC, n), y = n)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  coord_flip() +
+  labs(title = "Top Crime Premises") +
+  theme_minimal()
+save_plot(p10, "10_top_premises.png")
 
-# Age vs Time
-ggplot(df, aes(time_period, vict_age)) +
-  geom_boxplot(fill="cyan") +
-  theme_minimal() +
-  labs(title="Age vs Time of Crime")
+#  11. Rain vs Crime 
+p11 <- df %>%
+  count(RAIN_FLAG) %>%
+  ggplot(aes(x = RAIN_FLAG, y = n, fill = RAIN_FLAG)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Crime: Rain vs No Rain") +
+  theme_minimal()
+save_plot(p11, "11_rain_vs_crime.png")
 
-# Monthly Trend
-ggplot(df, aes(month)) +
-  geom_bar(fill="gold") +
-  theme_minimal() +
-  labs(title="Monthly Crime Trend")
+#  12. Temperature Level vs Crime 
+p12 <- df %>%
+  count(TEMP_LEVEL) %>%
+  ggplot(aes(x = TEMP_LEVEL, y = n, fill = TEMP_LEVEL)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Crime by Temperature Level") +
+  theme_minimal()
+save_plot(p12, "12_crime_by_temp_level.png")
 
+#  13. Top Crime Types 
+p13 <- df %>%
+  count(CRM.CD.DESC, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(CRM.CD.DESC, n), y = n)) +
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  coord_flip() +
+  labs(title = "Top 10 Crime Types") +
+  theme_minimal()
+save_plot(p13, "13_top_crime_types.png")
+
+#  14. Correlation Heatmap 
+numeric_df <- df %>%
+  select(TEMP_MAX, TEMP_MIN, RAIN, VICT_AGE) %>%
+  filter(VICT_AGE > 0) %>%
+  na.omit()
+
+# Compute correlation matrix and plot heatmap
+cor_matrix <- cor(numeric_df)
+png(file.path(PLOTS_DIR, "14_correlation_heatmap.png"), width = 800, height = 700)
+corrplot(cor_matrix, method = "color", addCoef.col = "black")
+dev.off()
+cat("  Saved: 14_correlation_heatmap.png\n")
+
+cat("EDA complete. All plots saved to:", PLOTS_DIR, "\n")
